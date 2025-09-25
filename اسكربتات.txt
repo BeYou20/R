@@ -1,0 +1,23 @@
+ اسكربت عرض اراء الطلاب
+
+function doGet(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sheet1");
+  var data = sheet.getRange(2, 1, sheet.getLastRow()-1, 1).getValues(); 
+  // (2,1) يبدأ من الصف الثاني لتجاهل العنوان testimonials
+
+  var testimonials = [];
+
+  data.forEach(function(row) {
+    if (row[0]) {
+      // نفصل النصوص باستخدام |
+      var parts = row[0].split("|");
+      parts.forEach(function(p) {
+        testimonials.push(p.trim());
+      });
+    }
+  });
+
+  return ContentService.createTextOutput(
+    JSON.stringify({ testimonials: testimonials })
+  ).setMimeType(ContentService.MimeType.JSON);
+} 
