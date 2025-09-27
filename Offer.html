@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل عرض مؤسسة كن أنت - الدورتين بسعر واحدة</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* تحديث متغيرات الألوان */
+    :root {
+      --primary-color: #00BFA5; /* الأخضر الفاتح (Teal Green) - لون الزر والتأكيد */
+      --primary-darker: #00A38D; /* أخضر أغمق للهوفر */
+      --secondary-color: #383838; /* لون النص الأساسي الداكن */
+      --light-bg: #F0F2F5; /* خلفية أفتح */
+      --light-accent: #E0FFF0; /* خلفية خفيفة للخيار المختار */
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--light-bg);
+      margin: 0;
+      padding: 0;
+      color: var(--secondary-color);
+    }
+
+    .container {
+      max-width: 680px; 
+      margin: 50px auto;
+      background-color: #fff;
+      padding: 40px 35px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+      position: relative;
+      transition: all 0.3s ease;
+      min-height: 500px; 
+    }
+
+    /* شعار المؤسسة */
+    .logo {
+      display: block;
+      margin: 0 auto 25px;
+      width: 140px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color); 
+      margin-bottom: 10px;
+      font-weight: 900;
+      font-size: 28px;
+    }
+
+    p.description {
+      text-align: center;
+      margin-bottom: 35px;
+      font-size: 17px;
+      color: #666;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    /* تنسيق العناصر */
+    form label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--secondary-color);
+      font-size: 16px;
+    }
+
+    form input, form select, form textarea {
+      width: 100%;
+      padding: 14px 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: 1px solid #DDD;
+      font-size: 15px;
+      outline: none;
+      box-sizing: border-box;
+      background-color: #FAFAFA;
+      transition: border-color 0.3s;
+      font-family: 'Cairo', sans-serif; 
+    }
+
+    form input:focus, form select:focus, form textarea:focus {
+      border-color: var(--primary-color); 
+      box-shadow: 0 0 8px rgba(0, 191, 165, 0.5); 
+      background-color: #FFF;
+    }
+
+    /* الزر الرئيسي (الأخضر) */
+    form button {
+      width: 100%;
+      padding: 18px;
+      background-color: var(--primary-color); 
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+      box-shadow: 0 4px 15px rgba(0, 191, 165, 0.4);
+      margin-top: 25px;
+    }
+
+    form button:hover:not(:disabled) {
+      background-color: var(--primary-darker); 
+      box-shadow: 0 6px 20px rgba(0, 191, 165, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    form button:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(0, 191, 165, 0.4);
+    }
+
+    form button:disabled {
+        background-color: #CCC;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    .note {
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+      margin-top: 15px;
+      font-weight: 400;
+    }
+    
+    /* -------------------------------------- */
+    /* تحسين اختيار الدورات (UX) */
+    /* -------------------------------------- */
+    .courses-selection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .course-item {
+      display: block;
+      cursor: pointer;
+      background-color: #FFF;
+      padding: 12px;
+      border: 2px solid #E0E0E0;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      font-weight: 600;
+      font-size: 15px;
+      position: relative;
+    }
+
+    /* تأثير عند تمرير الفأرة */
+    .course-item:hover {
+        border-color: #A0EACF; 
+        background-color: #F0FFF9;
+    }
+    
+    .course-item input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        height: 0;
+        width: 0;
+    }
+
+    /* عند التحديد (الأخضر) */
+    .course-item input:checked ~ .course-title {
+        color: var(--primary-darker); 
+        font-weight: 700;
+    }
+    
+    .course-item input:checked ~ .course-title i {
+        color: var(--primary-darker); 
+    }
+    
+    /* تغيير حدود وخلفية الخيار المختار */
+    .course-item input:checked ~ .custom-checkbox {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .course-item input:checked ~ .custom-checkbox::after {
+        content: "\f00c"; 
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        color: #fff;
+        font-size: 12px;
+        position: absolute;
+        top: 50%;
+        right: 21px; 
+        transform: translateY(-50%);
+    }
+
+    /* حالة التحديد */
+    .selection-status {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+      /* النمط الافتراضي */
+      background-color: #FFFACD; 
+      color: #9C6500; 
+      border: 1px solid #FFE066;
+    }
+
+    .status-success {
+      background-color: #D4EDDA; 
+      color: #155724; 
+      border: 1px solid #C3E6CB;
+    }
+    
+    .status-error {
+        background-color: #F8D7DA; 
+        color: #721C24; 
+        border-color: #F5C6CB;
+    }
+
+    .course-title {
+        display: flex;
+        align-items: center;
+    }
+    
+    .course-title i {
+        margin-left: 8px;
+        color: var(--primary-color); 
+        font-size: 16px;
+    }
+
+    /* رسالة النجاح بعد الإرسال */
+    #submissionMessage {
+        padding: 15px;
+        margin-top: 20px;
+        border-radius: 10px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 18px;
+        display: none; /* مخفية في البداية */
+    }
+
+    /* responsive */
+    @media(max-width: 768px) {
+      .container {
+        margin: 20px;
+        padding: 25px 20px;
+      }
+      .courses-selection-grid {
+        grid-template-columns: 1fr;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      p.description {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="images/photo.jpg" alt="شعار مؤسسة كن أنت" class="logo">
+    <h1>عرض الـ VIP: دورتان بسعر واحدة!</h1>
+    <p class="description">اغتنم الفرصة الآن! اشترك في العرض التدريبي المميز واحصل على دورتين تخصصيتين مع **شهادتين دوليتين** لتعزيز مسيرتك المهنية.</p>
+
+    <form id="registrationForm">
+      <label for="fullname">الاسم الكامل:</label>
+      <input type="text" id="fullname" name="الاسم الكامل" placeholder="أدخل اسمك الكامل كما تحب أن يظهر في الشهادة" required>
+
+      <label for="email">البريد الإلكتروني:</label>
+      <input type="email" id="email" name="البريد الإلكتروني" placeholder="example@email.com (لإرسال الشهادات)" required>
+
+      <label for="phone">رقم الهاتف / واتساب:</label>
+      <input type="tel" id="phone" name="رقم الهاتف" placeholder="مثال: 96777xxxxxxx - سيتم التواصل معك عبر هذا الرقم" required>
+
+      <label for="age">العمر:</label>
+      <input type="number" id="age" name="العمر" placeholder="أدخل عمرك" min="18" max="99" required>
+
+      <label for="gender">الجنس:</label>
+      <select id="gender" name="الجنس" required>
+        <option value="" disabled selected>-- اختر الجنس --</option>
+        <option value="ذكر">ذكر</option>
+        <option value="أنثى">أنثى</option>
+      </select>
+
+      <label for="courses-list">اختر الدورات التي تناسبك (الحد الأدنى دورتان):</label>
+      <div class="courses-selection-grid" id="coursesList">
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="النظام المحاسبي">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-calculator"></i> دورة النظام المحاسبي</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="أنظمة محاسبية بالإكسل">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-file-excel"></i> دورة أنظمة محاسبية بالإكسل</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="أنظمة محاسبية بالجوال">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-mobile-screen"></i> دورة أنظمة محاسبية بالجوال</span>
+        </label>
+
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="إدارة المشاريع الاحترافية PMP">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-briefcase"></i> دورة إدارة المشاريع الاحترافية PMP</span>
+        </label>
+
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="العلاقات العامة">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-phone"></i> دورة العلاقات العامة</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="التميز في خدمة العملاء">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-star"></i> دورة التميز في خدمة العملاء</span>
+        </label>
+
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="مشتريات ومخازن">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-box"></i> دورة مشتريات ومخازن</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="التسويق الإلكتروني">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-bullhorn"></i> دورة التسويق الإلكتروني</span>
+        </label>
+
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="أساسيات المحاسبة">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-book"></i> دورة أساسيات المحاسبة</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="التخطيط للحملات الإعلانية">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-chart-line"></i> التخطيط للحملات الإعلانية</span>
+        </label>
+        
+        <label class="course-item">
+            <input type="checkbox" name="courses_selected" value="الإتيكيت ودبلوماسية الأعمال">
+            <span class="custom-checkbox"></span>
+            <span class="course-title"><i class="fa-solid fa-handshake"></i> دورة الإتيكيت ودبلوماسية الأعمال</span>
+        </label>
+        
+      </div>
+      <div class="selection-status" id="selectionStatus">الرجاء اختيار دورتين على الأقل للاستفادة من العرض.</div>
+      
+      <label for="notes">ملاحظات إضافية (اختياري):</label>
+      <textarea id="notes" name="ملاحظات إضافية" rows="4" placeholder="أضف أي ملاحظات أو استفسارات"></textarea>
+
+      <button type="submit" id="submitButton">إرسال التسجيل الآن</button>
+      <p class="note">✅ بعد الإرسال، سيتم تحويلك مباشرةً إلى واتساب للتأكيد الفوري.</p>
+    </form>
+    
+    <div id="submissionMessage" class="status-success" style="display: none;"></div>
+  </div>
+
+  <script src="url.js"></script>
+
+  <script>
+    const form = document.getElementById('registrationForm');
+    const checkboxes = document.querySelectorAll('#coursesList input[type="checkbox"]');
+    const statusDisplay = document.getElementById('selectionStatus');
+    const submissionMessage = document.getElementById('submissionMessage');
+    const submitButton = document.getElementById('submitButton');
+    const MIN_SELECTION = 2;
+
+    // دالة لتحديث حالة الاختيار
+    function updateSelectionStatus() {
+      const checkedCount = document.querySelectorAll('#coursesList input[type="checkbox"]:checked').length;
+      
+      if (checkedCount < MIN_SELECTION) {
+        statusDisplay.classList.add('status-error');
+        statusDisplay.classList.remove('status-success');
+        if (checkedCount === 0) {
+            statusDisplay.textContent = `يجب اختيار دورتين على الأقل. لم يتم اختيار أي دورة حتى الآن.`;
+        } else {
+            statusDisplay.textContent = `يجب اختيار دورتين على الأقل. اختر ${MIN_SELECTION - checkedCount} دورة إضافية.`;
+        }
+        return false;
+      } else {
+        statusDisplay.classList.remove('status-error');
+        statusDisplay.classList.add('status-success');
+        statusDisplay.textContent = `اختيار موفق! تم اختيار ${checkedCount} دورة. أكمل بيانات التسجيل وأرسلها.`;
+        return true;
+      }
+    }
+
+    // منطق التحديد وتغيير الألوان عبر JS
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const label = this.closest('.course-item');
+        if (this.checked) {
+            label.style.borderColor = 'var(--primary-color)';
+            label.style.backgroundColor = 'var(--light-accent)'; 
+        } else {
+            label.style.borderColor = '#E0E0E0';
+            label.style.backgroundColor = '#FFF';
+        }
+        updateSelectionStatus();
+      });
+    });
+
+    // دالة الإرسال عبر fetch والتوجيه للواتساب (التصحيح هنا)
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); 
+      
+      const isValid = updateSelectionStatus(); 
+      if (!isValid) {
+        alert('الرجاء اختيار دورتين على الأقل للاستفادة من العرض.');
+        return;
+      }
+
+      // تجهيز البيانات
+      const formData = new FormData(this);
+      const urlParams = new URLSearchParams(); 
+
+      // جمع الدورات المختارة يدوياً (لرسالة الواتساب وللإرسال)
+      const selectedCourseElements = document.querySelectorAll('input[name="courses_selected"]:checked');
+      const selectedCourses = [];
+      const coursesString = [];
+
+      selectedCourseElements.forEach(checkbox => {
+          selectedCourses.push(checkbox.value);
+          coursesString.push(checkbox.value); 
+          
+          // إضافة الدورة المحددة فقط إلى بيانات الإرسال لـ Google Sheet
+          urlParams.append('courses_selected', checkbox.value);
+      });
+      
+      const coursesStringJoined = coursesString.join('، '); 
+
+
+      // جمع جميع الحقول الأخرى (الحقول الفردية) وإضافتها إلى urlParams
+      const allFields = {
+          'الاسم الكامل': formData.get('الاسم الكامل'),
+          'البريد الإلكتروني': formData.get('البريد الإلكتروني'),
+          'رقم الهاتف': formData.get('رقم الهاتف'),
+          'العمر': formData.get('العمر'),
+          'الجنس': formData.get('الجنس'),
+          'ملاحظات إضافية': formData.get('ملاحظات إضافية') || 'لا توجد',
+      };
+      
+      for (const [key, value] of Object.entries(allFields)) {
+          urlParams.append(key, value);
+      }
+
+
+      // تغيير حالة الزر
+      submitButton.textContent = 'جاري إرسال البيانات...';
+      submitButton.disabled = true;
+
+      // 1. إرسال البيانات لا متزامنًا لجدول بيانات جوجل
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        body: urlParams, // نستخدم urlParams المصمم يدوياً
+        mode: 'no-cors' 
+      })
+      .then(response => {
+        
+        // 2. بناء رسالة الواتساب المفصلة 
+        let messageBody = `مرحباً مؤسسة كن أنت، أرجو تأكيد اشتراكي في عرض VIP. هذه بيانات التسجيل المرسلة عبر النموذج:`;
+
+        for (const [key, value] of Object.entries(allFields)) {
+            messageBody += `\n* ${key}: ${value}`;
+        }
+
+        // إضافة الدورات (العدد والأسماء الصحيحة)
+        messageBody += `\n* الدورات المختارة (${selectedCourses.length}): ${coursesStringJoined}`;
+        
+        const whatsappMessage = messageBody;
+
+        // تشفير الرسالة لعنوان URL
+        const encodedMessage = encodeURIComponent(whatsappMessage);
+        
+        // بناء رابط الواتساب
+        const whatsappURL = `https://wa.me/${INSTITUTION_WHATSAPP_NUMBER}?text=${encodedMessage}`;
+
+        // 3. عرض رسالة النجاح والتحويل
+        submissionMessage.textContent = '✅ تم تسجيل بياناتك بنجاح! جارٍ تحويلك إلى واتساب للتأكيد الفوري...';
+        submissionMessage.style.display = 'block';
+        
+        // التوجيه إلى واتساب بعد فترة قصيرة
+        setTimeout(() => {
+            window.location.href = whatsappURL;
+        }, 1500);
+
+      })
+      .catch(error => {
+        // في حالة فشل الإرسال (مشكلة في الشبكة)
+        submissionMessage.classList.remove('status-success');
+        submissionMessage.classList.add('status-error');
+        submissionMessage.textContent = '❌ حدث خطأ أثناء إرسال البيانات. الرجاء المحاولة مرة أخرى.';
+        submissionMessage.style.display = 'block';
+        
+        // إعادة الزر لوضعه الطبيعي
+        submitButton.textContent = 'إرسال التسجيل الآن';
+        submitButton.disabled = false;
+      });
+    });
+
+    // تهيئة حالة الاختيار عند تحميل الصفحة
+    updateSelectionStatus();
+  </script>
+</body>
+</html>
