@@ -1,43 +1,38 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# سكربت لرفع كل الملفات إلى GitHub مع أخذ رابط المشروع من repo_url.txt
-# تأكد أن repo_url.txt يحتوي على رابط المستودع في سطر واحد
+# سكربت رفع الملفات إلى GitHub من Termux
+# يقرأ رابط المستودع من repo_url.txt
 
-# مسار السكربت
-SCRIPT_DIR="$(dirname "$0")"
-cd "$SCRIPT_DIR" || exit 1
+# تحويل السكربت نفسه وصيغة repo_url.txt إلى Unix format لتجنب مشاكل \r
+pkg install -y dos2unix git
+dos2unix "$0"
+dos2unix "/storage/emulated/0/Download/trim/repo_url.txt"
 
-# ملف يحتوي على رابط المستودع
-REPO_FILE="/storage/emulated/0/Download/trim/repo_url.txt"
+# الانتقال إلى مجلد السكربت
+cd "$(dirname "$0")" || exit 1
 
-if [ ! -f "$REPO_FILE" ]; then
-    echo "خطأ: لم يتم العثور على الملف repo_url.txt في $REPO_FILE"
-    exit 1
+# قراءة رابط المستودع من الملف
+if [ ! -f "/storage/emulated/0/Download/trim/repo_url.txt" ]; then
+  echo "خطأ: ملف repo_url.txt غير موجود!"
+  exit 1
 fi
+REPO_URL=$(cat /storage/emulated/0/Download/trim/repo_url.txt)
 
-# قراءة رابط المشروع
-REPO_URL="$(cat "$REPO_FILE" | tr -d '\r\n')"
-
-if [ -z "$REPO_URL" ]; then
-    echo "خطأ: الملف repo_url.txt فارغ"
-    exit 1
-fi
-
-# تأكيد أن المجلد آمن
+# التأكد من أن المجلد آمن
 git config --global --add safe.directory "$(pwd)"
 
 # تهيئة المستودع إذا لم يكن موجود
 if [ ! -d ".git" ]; then
-    git init
+  git init
 fi
 
 # إضافة كل الملفات
 git add .
 
-# إنشاء أول كوميت إذا لم يكن هناك كوميتات
+# إنشاء كوميت أول إذا لم يكن هناك كوميتات
 if ! git log >/dev/null 2>&1; then
-    git commit -m "Initial commit"
+  git commit -m "Initial commit"
 else
-    git commit -m "Update files" || echo "لا توجد تغييرات جديدة"
+  git commit -m "Update files" || echo "لا توجد تغييرات جديدة"
 fi
 
 # إضافة المستودع البعيد أو تحديثه
@@ -46,8 +41,9 @@ git remote add origin "$REPO_URL" 2>/dev/null || git remote set-url origin "$REP
 # التأكد من الفرع الرئيسي
 git branch -M main
 
-# سحب آخر التغييرات لتجنب مشاكل الرفض
-git pull origin main --allow-unrelated-histories
+# جلب التحديثات وحل التعارضات بطريقة آمنة
+git fetch origin main
+git merge --allow-unrelated-histories origin/main -m "Merge remote changes" || echo "تم دمج التغييرات البعيدة"
 
 # رفع الملفات إلى GitHub
 git push -u origin main
