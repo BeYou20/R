@@ -24,7 +24,8 @@
     <h1><i class="fas fa-seedling"></i> مؤسسة كن أنت</h1>
     <nav>
         <a href="index.html">الرئيسية</a>
-        <a href="about/index.html">من نحن</a> <a href="courses.html">الدورات</a>
+        <a href="about/index.html">من نحن</a> 
+        <a href="courses.html">الدورات</a>
         <a href="contact.html">تواصل معنا</a>
     </nav>
     <span id="status-indicator"></span>
@@ -41,7 +42,7 @@
 
 <div class="container" id="about-us-section" data-aos="fade-up">
     <h2>من نحن</h2>
-    </div>
+</div>
 
 <div class="container" data-aos="fade-up">
     <div class="video-section" style="margin-top:15px;">
@@ -118,13 +119,13 @@
     <i class="fab fa-whatsapp"></i>
 </a>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script src="slider.js"></script> 
+<script src="js/course-slider.js"></script> 
 <script src="url.js"></script> 
 
 <script>
     AOS.init();
     
-    // دالة Sliders المفقودة (يجب أن تكون موجودة في ملف slider.js)
+    // دالة Sliders: يجب أن تكون في ملف js/course-slider.js ولكن تم إدراجها هنا لضمان التشغيل الفوري
     window.startSliders = function() {
         let currentInstructorSlide = 0;
         let currentTestimonialSlide = 0;
@@ -164,6 +165,7 @@
                     showSlide(instructorSlides, instructorDots, currentInstructorSlide);
                 });
             });
+            // تشغيل التبديل التلقائي
             setInterval(() => {
                 currentInstructorSlide = nextSlide(instructorSlides, instructorDots, currentInstructorSlide);
             }, 5000); 
@@ -178,6 +180,7 @@
                     showSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
                 });
             });
+            // تشغيل التبديل التلقائي
             setInterval(() => {
                 currentTestimonialSlide = nextSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
             }, 6000); 
@@ -189,149 +192,156 @@
     const urlParams = new URLSearchParams(window.location.search);
     const courseId = urlParams.get('id');
 
-    async function loadCourseData() {
-        // حالة التحميل
-        statusIndicator.innerHTML = '🟡';
+    // الدوال المساعدة (يفضل وضعها في ملف خارجي ولكن تم دمجها هنا للتكامل)
+    const parseList = (elementId, data, iconClass) => {
+        const listElement = document.getElementById(elementId);
+        if (!data || data.length === 0) {
+            listElement.parentElement.style.display = 'none';
+            return;
+        }
+        listElement.innerHTML = '';
         try {
-            // 💥 تم توحيد المتغير إلى API_BASE_URL ليتوافق مع url.js 
-            // 💥 تم إضافة action=courses/details لجلب قائمة الدورات
-            const apiUrl = `${API_BASE_URL}?action=courses`; 
-            const response = await fetch(apiUrl); 
-            const allCourses = await response.json();
+            data.split('|').forEach(text => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="${iconClass}"></i> ${text.trim()}`;
+                listElement.appendChild(li);
+            });
+        } catch(e) {
+            listElement.parentElement.style.display = 'none';
+            console.error(`Error parsing ${elementId}:`, e);
+        }
+    };
+    
+    // قوالب عرض شرائح المدربين والآراء
+    const instructorTemplate = (inst) => `
+        <div class="instructor-card">
+            <img src="${inst.photo || 'https://via.placeholder.com/150'}" alt="${inst.name}" onerror="this.src='https://via.placeholder.com/150/0d3b14/ffffff?text=لا+يوجد+صورة'">
+            <h4>${inst.name}</h4>
+            <p>${inst.role}</p>
+        </div>
+    `;
+    const testimonialTemplate = (t) => `
+        <p class="testimonial-text">"${t.text}"</p>
+        <p><strong>${t.name}</strong></p>
+    `;
 
-            // العثور على الدورة المطلوبة
-            const course = allCourses.find(c => c.id == courseId); // استخدام == للتحقق المرن
+    // دالة إعداد السلايدرات
+    const setupSlider = (sliderIdContainer, dotClass, dataKey, cardTemplate) => {
+        const sliderContainer = document.getElementById(sliderIdContainer);
+        const sliderDiv = sliderContainer.querySelector(`#${dataKey}-slider`);
+        const dotsContainer = sliderContainer.querySelector(`.${dotClass}`);
+        
+        if (!window.course[dataKey] || window.course[dataKey].length === 0) {
+            sliderContainer.parentElement.style.display = 'none';
+            return;
+        }
+        
+        let items = [];
+        try {
+            items = JSON.parse(window.course[dataKey]);
+        } catch (e) {
+            try {
+                window.course[dataKey].split('|').forEach(itemString => {
+                    const parts = itemString.split(' - ').map(p => p.trim());
+                    if (dataKey === 'instructors' && parts.length >= 2) {
+                        items.push({ name: parts[0], role: parts[1], photo: parts[2] || 'https://via.placeholder.com/150' });
+                    } else if (dataKey === 'testimonials' && parts.length >= 2) {
+                        items.push({ text: parts[0], name: parts[1] });
+                    }
+                });
+            } catch(e2) {
+                console.error(`Error processing fallback for ${dataKey}:`, e2);
+                sliderContainer.parentElement.style.display = 'none';
+                return;
+            }
+        }
+        
+        sliderDiv.innerHTML = '';
+        dotsContainer.innerHTML = '';
 
-            if (!course) {
+        items.forEach((item, i) => {
+            const slide = document.createElement('div');
+            slide.className = dataKey.slice(0, -1) + '-slide'; 
+            slide.innerHTML = cardTemplate(item);
+            sliderDiv.appendChild(slide);
+
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            dot.dataset.slideIndex = i;
+            dotsContainer.appendChild(dot);
+        });
+    };
+    
+    // دالة جلب بيانات الدورة
+    async function loadCourseData() {
+        statusIndicator.innerHTML = '🟡';
+        
+        if (!courseId) {
+            statusIndicator.innerHTML = '🔴';
+            document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
+            document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
+            document.querySelector('.marquee').style.display = 'none';
+            document.getElementById('course-about').parentElement.style.display = 'none';
+            document.querySelector('.certificate-section').style.display = 'none';
+            return;
+        }
+
+        try {
+            // 💥 التعديل الحاسم: إرسال الـ action ومعرّف الدورة (id) مباشرة 
+            const apiUrl = `${API_BASE_URL}?action=getCourse&id=${courseId}`; 
+            
+            const response = await fetch(apiUrl);
+            const courseData = await response.json();
+            
+            // تخزين الدورة في متغير عام مؤقت
+            window.course = Array.isArray(courseData) ? courseData[0] : courseData;
+
+            if (!window.course || !window.course.title) {
                 statusIndicator.innerHTML = '🔴';
                 document.getElementById('hero-title').innerText = "⚠️ لم يتم العثور على الدورة المطلوبة";
-                document.getElementById('hero-description').innerText = "يرجى العودة إلى صفحة الدورات واختيار دورة صحيحة.";
-                // إخفاء الأقسام المتبقية
-                document.querySelectorAll('.container, .video-section').forEach(el => el.style.display = 'none');
+                document.getElementById('hero-description').innerText = "يرجى التأكد من الرابط أو العودة إلى صفحة الدورات واختيار دورة صحيحة.";
+                document.querySelector('.marquee').style.display = 'none';
+                document.getElementById('course-about').parentElement.style.display = 'none';
+                document.querySelector('.certificate-section').style.display = 'none';
                 return;
             }
 
-            // تحديث محتوى الصفحة
-            document.getElementById('hero-title').innerText = course.title || "دورة تدريبية متخصصة";
-            document.getElementById('hero-description').innerText = course.heroDescription || "";
-            document.getElementById('marquee-text').innerText = course.marqueeText || "سجل الآن وابدأ رحلتك!";
-            document.getElementById('page-title').innerText = `مؤسسة كن أنت - ${course.title || "تفاصيل الدورة"}`;
+            // 1. تحديث النصوص الأساسية
+            document.getElementById('hero-title').innerText = window.course.title || "دورة تدريبية متخصصة";
+            document.getElementById('hero-description').innerText = window.course.heroDescription || "";
+            document.getElementById('marquee-text').innerText = window.course.marqueeText || "سجل الآن وابدأ رحلتك!";
+            document.getElementById('page-title').innerText = `مؤسسة كن أنت - ${window.course.title || "تفاصيل الدورة"}`;
+            document.getElementById('course-about').innerText = window.course.courseAbout || "لا توجد نبذة متوفرة حالياً.";
 
-            // تحديث الفيديو
+            // 2. تحديث الفيديو
             const videoEmbed = document.getElementById('video-embed');
-            if (course.videoUrl) {
-                // استبدال div الفارغ بـ iframe إذا كان الرابط موجوداً
-                videoEmbed.innerHTML = `<iframe width="100%" height="250" src="${course.videoUrl.replace('watch?v=', 'embed/')}" frameborder="0" allowfullscreen style="border-radius:8px;"></iframe>`;
+            if (window.course.videoUrl && window.course.videoUrl.includes('youtube.com')) {
+                // التأكد من استخدام رابط الـ embed لليوتيوب
+                const embedUrl = window.course.videoUrl.replace('watch?v=', 'embed/');
+                videoEmbed.innerHTML = `<iframe width="100%" height="250" src="${embedUrl}" frameborder="0" allowfullscreen style="border-radius:8px;"></iframe>`;
             } else {
-                 videoEmbed.style.display = 'none'; // إخفاء قسم الفيديو إذا لم يتوفر الرابط
+                 videoEmbed.style.display = 'none';
             }
             
-            document.getElementById('course-about').innerText = course.courseAbout || "لا توجد نبذة متوفرة حالياً.";
-
-            // معالجة الأقسام ذات النصوص المتعددة (Objectives, Axes, Achievements)
-            const parseList = (elementId, data, iconClass) => {
-                const listElement = document.getElementById(elementId);
-                if (!data || data.length === 0) {
-                    listElement.parentElement.style.display = 'none';
-                    return;
-                }
-                listElement.innerHTML = '';
-                try {
-                    // افتراض أن البيانات مفصولة بـ |
-                    data.split('|').forEach(text => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `<i class="${iconClass}"></i> ${text.trim()}`;
-                        listElement.appendChild(li);
-                    });
-                } catch(e) {
-                    listElement.parentElement.style.display = 'none';
-                    console.error(`Error parsing ${elementId}:`, e);
-                }
-            };
+            // 3. معالجة القوائم (Objectives, Axes, Achievements)
+            parseList('objectives-list', window.course.objectives, 'fa fa-check-circle');
+            parseList('axes-list', window.course.axes, 'fa fa-arrow-alt-circle-left');
+            parseList('achievements-list', window.course.achievementsText, 'fa fa-star');
             
-            parseList('objectives-list', course.objectives, 'fa fa-check-circle');
-            parseList('axes-list', course.axes, 'fa fa-arrow-alt-circle-left');
-            parseList('achievements-list', course.achievementsText, 'fa fa-star');
-            
-            // معالجة المدربين والآراء (Instructors and Testimonials)
-            const setupSlider = (sliderId, dotClass, dataKey, cardTemplate, errorTemplate) => {
-                const sliderContainer = document.getElementById(sliderId);
-                const sliderDiv = sliderContainer.querySelector(`.${sliderId}`);
-                const dotsContainer = sliderContainer.querySelector(`.${dotClass}`);
-                
-                if (!course[dataKey]) {
-                    sliderContainer.parentElement.style.display = 'none';
-                    return;
-                }
-                
-                let items = [];
-                try {
-                    // محاولة تحليل JSON
-                    items = JSON.parse(course[dataKey]);
-                } catch (e) {
-                    // محاولة تحليل | مفصولة
-                    try {
-                        course[dataKey].split('|').forEach(itemString => {
-                            const parts = itemString.split(' - ').map(p => p.trim());
-                            if (dataKey === 'instructors' && parts.length >= 2) {
-                                items.push({ name: parts[0], role: parts[1], photo: parts[2] || 'https://via.placeholder.com/150' });
-                            } else if (dataKey === 'testimonials' && parts.length >= 2) {
-                                items.push({ text: parts[0], name: parts[1] });
-                            }
-                        });
-                    } catch(e2) {
-                        console.error(`Error processing fallback for ${dataKey}:`, e2);
-                        sliderContainer.parentElement.style.display = 'none';
-                        return;
-                    }
-                }
-                
-                sliderDiv.innerHTML = '';
-                dotsContainer.innerHTML = '';
-
-                items.forEach((item, i) => {
-                    // إنشاء الشريحة
-                    const slide = document.createElement('div');
-                    slide.className = dataKey.slice(0, -1) + '-slide'; // instructor-slide or testimonial-slide
-                    slide.innerHTML = cardTemplate(item);
-                    sliderDiv.appendChild(slide);
-
-                    // إنشاء النقطة
-                    const dot = document.createElement('span');
-                    dot.className = 'dot';
-                    dot.dataset.slideIndex = i;
-                    dotsContainer.appendChild(dot);
-                });
-            };
-
-            // قوالب عرض الشرائح
-            const instructorTemplate = (inst) => `
-                <div class="instructor-card">
-                    <img src="${inst.photo || 'https://via.placeholder.com/150'}" alt="${inst.name}" onerror="this.src='https://via.placeholder.com/150/0d3b14/ffffff?text=لا+يوجد+صورة'">
-                    <h4>${inst.name}</h4>
-                    <p>${inst.role}</p>
-                </div>
-            `;
-            const testimonialTemplate = (t) => `
-                <p class="testimonial-text">"${t.text}"</p>
-                <p><strong>${t.name}</strong></p>
-            `;
-
-            // تنفيذ إعداد شرائح المدربين والآراء
+            // 4. معالجة السلايدرات (Instructors and Testimonials)
             setupSlider('instructors-slider-container', 'instructor-dots', 'instructors', instructorTemplate);
             setupSlider('testimonials-slider-container', 'testimonial-dots', 'testimonials', testimonialTemplate);
 
-
-            // معالجة الأسئلة الشائعة (FAQ)
+            // 5. معالجة الأسئلة الشائعة (FAQ)
             const faqContainer = document.getElementById('faq-container');
             faqContainer.innerHTML = '';
-            if (course.faqs) {
+            if (window.course.faqs) {
                 let faqs = [];
                  try {
-                    faqs = JSON.parse(course.faqs);
+                    faqs = JSON.parse(window.course.faqs);
                 } catch (e) {
                      try {
-                        course.faqs.split('|').forEach(faqString => {
+                        window.course.faqs.split('|').forEach(faqString => {
                             const [question, answer] = faqString.split(':').map(p => p.trim());
                             if (question && answer) {
                                 faqs.push({ question, answer });
@@ -339,7 +349,6 @@
                         });
                     } catch(e2) {
                         faqContainer.parentElement.style.display = 'none';
-                        console.error('Error processing fallback for faqs:', e2);
                         return;
                     }
                 }
@@ -353,12 +362,10 @@
                     faqContainer.appendChild(div);
                 });
 
-                // تفعيل خاصية الطي (Accordion)
                 document.querySelectorAll('.faq-question').forEach(q => {
                     q.addEventListener('click', () => {
                         q.classList.toggle('active');
                         const ans = q.nextElementSibling;
-                        // التبديل بين العرض والإخفاء باستخدام الارتفاع
                         if (ans.style.maxHeight) {
                             ans.style.maxHeight = null;
                         } else {
@@ -369,16 +376,16 @@
             } else { faqContainer.parentElement.style.display = 'none'; }
 
 
-            // تحديث رابط التسجيل
+            // 6. تحديث رابط التسجيل
             const registerLink = document.getElementById('register-link');
-            if (registerLink && course.title) {
-                const encodedCourseTitle = encodeURIComponent(course.title);
+            if (registerLink && window.course.title) {
+                const encodedCourseTitle = encodeURIComponent(window.course.title);
                 registerLink.href = `Registration-Forum.html?course=${encodedCourseTitle}`;
             }
 
-            // إشارة النجاح وبدء السلايدرات
+            // إشارة النجاح (أخضر)
             statusIndicator.innerHTML = '🟢';
-            // استدعاء دالة بدء السلايدرات بعد إنشاء الشرائح
+            // استدعاء دالة بدء السلايدرات
             window.startSliders(); 
 
         } catch (err) {
