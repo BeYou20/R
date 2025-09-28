@@ -326,8 +326,8 @@ nav a:hover { color: var(--secondary-color); }
 /* 1. الحاوية الأب لـ Swiper Gallery - يجب أن يكون Overflow مخفياً */
 .mySwiper-gallery {
     width: 100%; 
-    height: 550;
-    /* 💥 الحل الحاسم: إخفاء أي محتوى يخرج عن حدود الحاوية 💥 */
+    /* 💥 التعديل الأول: تصغير ارتفاع الحاوية الأب 💥 */
+    height: 300px !important; 
     overflow: hidden !important; 
     padding: 0; 
     margin-top: 20px;
@@ -335,9 +335,7 @@ nav a:hover { color: var(--secondary-color); }
 
 /* 2. حاوية الشرائح (لضمان أنها ليست السبب في العرض الزائد) */
 .mySwiper-gallery .swiper-wrapper {
-    /* ضمان أن الـ wrapper لا يتجاوز عرض الحاوية الأب */
     width: 100% !important; 
-    /* ❌ تم حذف: transform: none !important; - لإعادة التحريك التلقائي ❌ */
 }
 
 /* 3. الشريحة الرئيسية (Card) */
@@ -348,12 +346,13 @@ nav a:hover { color: var(--secondary-color); }
     justify-content: center;
     text-align: center;
     border-radius: 15px;
-    /* 💥 الحل الحاسم: فرض العرض الكامل وإلغاء أي قيم مضمنة 💥 */
     width: 100% !important; 
-    /* إزالة الـ margin/padding الافتراضي من Swiper */
     margin: 0 !important; 
     padding: 0 !important;
-    height: 400px; 
+    
+    /* 💥 التعديل الثاني: تصغير ارتفاع الشريحة الداخلية (يجب أن يطابق الأب) 💥 */
+    height: 300px !important; 
+    
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background-color: var(--white-color);
     overflow: hidden; /* قص المحتوى الزائد داخل الشريحة فقط */
@@ -361,14 +360,15 @@ nav a:hover { color: var(--secondary-color); }
 
 /* 4. الصورة داخل الشريحة */
 .gallery-slide img {
-    width: 300px; 
-    height: 300px;
+    /* تصغير حجم الصورة أيضاً ليتناسب مع الارتفاع الجديد (مثلاً 200px) */
+    width: 200px; 
+    height: 200px;
     object-fit: contain; 
     transition: transform 0.3s;
     border-radius: 50%; 
     border: 5px solid var(--primary-color); 
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    margin-bottom: 20px; 
+    margin-bottom: 10px; /* تقليل المسافة أيضاً */
 }
 
 .gallery-slide:hover img {
@@ -380,8 +380,8 @@ nav a:hover { color: var(--secondary-color); }
     width: 100%;
     background-color: transparent; 
     color: var(--secondary-color); 
-    padding: 10px;
-    font-size: 1.5em; 
+    padding: 5px; /* تقليل البادينج */
+    font-size: 1.2em; /* تصغير حجم الخط */
     font-weight: bold;
     text-shadow: none; 
     text-align: center;
@@ -456,6 +456,20 @@ footer {
     padding: 10px 15px;
   }
   footer { padding: 15px; font-size: 12px; }
+
+  /* 💥 تعديل ارتفاع الجاليري في الجوال 💥 */
+  .mySwiper-gallery,
+  .gallery-slide {
+      height: 250px !important; 
+  }
+  .gallery-slide img {
+      width: 150px;
+      height: 150px;
+  }
+  .gallery-caption {
+      font-size: 1.1em;
+      padding: 3px;
+  }
 }
 @media (max-width: 400px) {
   .hero { padding: 60px 10px; }
@@ -464,4 +478,3 @@ footer {
   .section { padding: 15px 10px; }
   .testimonial { padding: 20px; }
 }
-
