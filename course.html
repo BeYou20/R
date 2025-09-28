@@ -78,7 +78,7 @@
 
     <h2>🏆 إنجازك بعد الدورة</h2>
     <div class="certificate-section" data-aos="zoom-in">
-        <img src="https://i.ibb.co/L519VjL/certificate.png" alt="نموذج شهادة الدورة">
+        <img src="https://i.ibb.co/v4v82S5/certificate-mockup.png" alt="نموذج شهادة الدورة" loading="lazy">
         <ul id="achievements-list" style="margin-top:20px; font-weight:bold; color:var(--primary-color); list-style:none; padding-right:0;"></ul>
     </div>
 
@@ -125,71 +125,13 @@
 <script>
     AOS.init();
     
-    // دالة Sliders: (يجب أن تكون في js/course-slider.js)
-    window.startSliders = function() {
-        let currentInstructorSlide = 0;
-        let currentTestimonialSlide = 0;
-
-        const instructorsContainer = document.getElementById('instructors-slider-container');
-        const instructorSlides = instructorsContainer ? instructorsContainer.querySelectorAll('.instructor-slide') : [];
-        const instructorDots = instructorsContainer ? instructorsContainer.querySelectorAll('.instructor-dots .dot') : [];
-        
-        const testimonialsContainer = document.getElementById('testimonials-slider-container');
-        const testimonialSlides = testimonialsContainer ? testimonialsContainer.querySelectorAll('.testimonial-slide') : [];
-        const testimonialDots = testimonialsContainer ? testimonialsContainer.querySelectorAll('.testimonial-dots .dot') : [];
-        
-        const showSlide = (slides, dots, index) => {
-            slides.forEach((s, i) => s.style.display = 'none');
-            dots.forEach(d => d.classList.remove('active'));
-            if (slides[index]) {
-                slides[index].style.display = 'flex';
-            }
-            if (dots[index]) {
-                dots[index].classList.add('active');
-            }
-        };
-
-        const nextSlide = (slides, dots, currentIndex) => {
-            if (slides.length === 0) return currentIndex;
-            const nextIndex = (currentIndex + 1) % slides.length;
-            showSlide(slides, dots, nextIndex);
-            return nextIndex;
-        };
-
-        if (instructorSlides.length > 0) {
-            showSlide(instructorSlides, instructorDots, 0);
-            instructorDots.forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    currentInstructorSlide = parseInt(e.target.dataset.slideIndex);
-                    showSlide(instructorSlides, instructorDots, currentInstructorSlide);
-                });
-            });
-            setInterval(() => {
-                currentInstructorSlide = nextSlide(instructorSlides, instructorDots, currentInstructorSlide);
-            }, 5000); 
-        }
-
-        if (testimonialSlides.length > 0) {
-            showSlide(testimonialSlides, testimonialDots, 0);
-            testimonialDots.forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    currentTestimonialSlide = parseInt(e.target.dataset.slideIndex);
-                    showSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
-                });
-            });
-            setInterval(() => {
-                currentTestimonialSlide = nextSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
-            }, 6000); 
-        }
-    };
-
-
+    // دالة Sliders: تم حذفها من هنا والاعتماد على js/course-slider.js
+    
     const statusIndicator = document.getElementById('status-indicator');
     const urlParams = new URLSearchParams(window.location.search);
-    // معرّف الدورة الذي يجب أن يكون رقم الصف (1-based index)
     const courseId = urlParams.get('id'); 
-
-    // الدوال المساعدة لـ parsing البيانات
+    
+    // الدوال المساعدة (Parsing)
     const parseList = (elementId, data, iconClass) => {
         const listElement = document.getElementById(elementId);
         if (!data || data.length === 0) {
@@ -208,10 +150,10 @@
         }
     };
     
-    // قوالب عرض شرائح المدربين والآراء
+    // قوالب عرض شرائح المدربين والآراء (معدلة لعرض سليم)
     const instructorTemplate = (inst) => `
         <div class="instructor-card">
-            <img src="${inst.photo || 'https://via.placeholder.com/150'}" alt="${inst.name}" onerror="this.src='https://via.placeholder.com/150/0d3b14/ffffff?text=لا+يوجد+صورة'">
+            <img src="${inst.photo || 'https://via.placeholder.com/150'}" alt="${inst.name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/0d3b14/ffffff?text=لا+يوجد+صورة';">
             <h4>${inst.name}</h4>
             <p>${inst.role}</p>
         </div>
@@ -234,22 +176,15 @@
         
         let items = [];
         try {
-            // كود Apps Script الذي أرسلته يعيد JSON.stringify لهذه الحقول، لذا نبدأ هنا بـ JSON.parse
+            // كود Apps Script الذي أرسلته يعيد JSON.stringify لهذه الحقول
             const rawData = typeof window.course[dataKey] === 'string' ? JSON.parse(window.course[dataKey]) : window.course[dataKey];
             
-            // تحقق من أن البيانات مصفوفة
             if (Array.isArray(rawData)) {
                  items = rawData;
             } else {
-                // محاولة معالجة كـ نص مفصول بـ | في حال فشل الـ JSON
-                window.course[dataKey].split('|').forEach(itemString => {
-                    const parts = itemString.split(' - ').map(p => p.trim());
-                    if (dataKey === 'instructors' && parts.length >= 2) {
-                        items.push({ name: parts[0], role: parts[1], photo: parts[2] || 'https://via.placeholder.com/150' });
-                    } else if (dataKey === 'testimonials' && parts.length >= 2) {
-                        items.push({ text: parts[0], name: parts[1] });
-                    }
-                });
+                 // في حال فشل الـ JSON (كحل احتياطي ضعيف)
+                 sliderContainer.parentElement.style.display = 'none';
+                 return;
             }
 
         } catch (e) {
@@ -263,12 +198,14 @@
 
         items.forEach((item, i) => {
             const slide = document.createElement('div');
-            slide.className = dataKey.slice(0, -1) + '-slide'; 
+            // التأكد من أن اسم الكلاس هو 'instructor-slide' أو 'testimonial-slide'
+            const slideClassName = dataKey.slice(0, -1) + '-slide'; 
+            slide.className = slideClassName; 
             slide.innerHTML = cardTemplate(item);
             sliderDiv.appendChild(slide);
 
             const dot = document.createElement('span');
-            dot.className = 'dot';
+            dot.className = 'dot ' + dotClass;
             dot.dataset.slideIndex = i;
             dotsContainer.appendChild(dot);
         });
@@ -287,19 +224,17 @@
         }
 
         try {
-            // 💥 التعديل الحاسم: العودة لجلب جميع الدورات (action=courses)
+            // العودة إلى جلب جميع الدورات (action=courses) لأن Apps Script لا يدعم getCourse
             const apiUrl = `${API_BASE_URL}?action=courses`; 
             
             const response = await fetch(apiUrl);
             const allCourses = await response.json();
             
-            // التحقق من أن الاستجابة صحيحة وليست خطأ
             if (allCourses.status === "error" || !Array.isArray(allCourses)) {
                  throw new Error("فشل في جلب قائمة الدورات من API.");
             }
             
-            // 💥 البحث عن الدورة المطلوبة محلياً باستخدام الـ ID 
-            // يتم استخدام == للبحث عن تطابق رقمي/نصي مرن، وهذا يعمل لأن الـ Apps Script يعيد رقم الصف كـ ID
+            // البحث عن الدورة المطلوبة محلياً
             const course = allCourses.find(c => c.id == courseId); 
             window.course = course;
 
@@ -313,14 +248,12 @@
 
             // -----------------  تحديث محتوى الصفحة  -----------------
             
-            // 1. تحديث النصوص الأساسية
             document.getElementById('hero-title').innerText = window.course.title || "دورة تدريبية متخصصة";
             document.getElementById('hero-description').innerText = window.course.heroDescription || "";
             document.getElementById('marquee-text').innerText = window.course.marqueeText || "سجل الآن وابدأ رحلتك!";
             document.getElementById('page-title').innerText = `مؤسسة كن أنت - ${window.course.title || "تفاصيل الدورة"}`;
             document.getElementById('course-about').innerText = window.course.courseAbout || "لا توجد نبذة متوفرة حالياً.";
 
-            // 2. تحديث الفيديو
             const videoEmbed = document.getElementById('video-embed');
             if (window.course.videoUrl && window.course.videoUrl.includes('youtube.com')) {
                 const embedUrl = window.course.videoUrl.replace('watch?v=', 'embed/').split('&')[0];
@@ -329,12 +262,11 @@
                  videoEmbed.style.display = 'none';
             }
             
-            // 3. معالجة القوائم (Objectives, Axes, Achievements)
             parseList('objectives-list', window.course.objectives, 'fa fa-check-circle');
             parseList('axes-list', window.course.axes, 'fa fa-arrow-alt-circle-left');
             parseList('achievements-list', window.course.achievementsText, 'fa fa-star');
             
-            // 4. معالجة السلايدرات (Instructors and Testimonials)
+            // 4. معالجة السلايدرات 
             setupSlider('instructors-slider-container', 'instructor-dots', 'instructors', instructorTemplate);
             setupSlider('testimonials-slider-container', 'testimonial-dots', 'testimonials', testimonialTemplate);
 
@@ -344,32 +276,45 @@
             if (window.course.faqs) {
                 let faqs = [];
                  try {
-                    // كود Apps Script يعيد هذا الحقل كـ JSON.stringify
                     faqs = JSON.parse(window.course.faqs);
                 } catch (e) {
-                     // في حال فشل الـ JSON، نعرض رسالة خطأ ونخفي القسم
                      faqContainer.parentElement.style.display = 'none';
-                     console.error("Failed to parse FAQ JSON:", e);
                      return;
                 }
 
                 faqs.forEach(f => {
                     const div = document.createElement('div');
                     div.className = 'faq-item';
+                    // تم تعديل الـ class هنا ليناسب طريقة عمل الـ CSS الجديد
                     div.innerHTML = `
                         <div class="faq-question"><span>${f.question}</span><i class="fa fa-chevron-down"></i></div>
-                        <div class="faq-answer">${f.answer}</div>`;
+                        <div class="faq-answer-content">${f.answer}</div>`;
                     faqContainer.appendChild(div);
                 });
-
+                
+                // منطق فتح/إغلاق الـ FAQ (معدل لاستخدام toggling class)
                 document.querySelectorAll('.faq-question').forEach(q => {
                     q.addEventListener('click', () => {
-                        q.classList.toggle('active');
                         const ans = q.nextElementSibling;
-                        if (ans.style.maxHeight) {
-                            ans.style.maxHeight = null;
+                        const icon = q.querySelector('i');
+                        
+                        // إغلاق جميع الإجابات الأخرى
+                        document.querySelectorAll('.faq-question').forEach(otherQ => {
+                           if (otherQ !== q && otherQ.classList.contains('active')) {
+                                otherQ.classList.remove('active');
+                                otherQ.nextElementSibling.style.display = 'none';
+                                otherQ.querySelector('i').style.transform = 'rotate(0deg)';
+                           }
+                        });
+
+                        // فتح أو إغلاق الإجابة الحالية
+                        q.classList.toggle('active');
+                        if (q.classList.contains('active')) {
+                            ans.style.display = 'block';
+                            icon.style.transform = 'rotate(180deg)';
                         } else {
-                            ans.style.maxHeight = ans.scrollHeight + "px";
+                            ans.style.display = 'none';
+                            icon.style.transform = 'rotate(0deg)';
                         }
                     });
                 });
@@ -380,12 +325,13 @@
             const registerLink = document.getElementById('register-link');
             if (registerLink && window.course.title) {
                 const encodedCourseTitle = encodeURIComponent(window.course.title);
+                // تأكد أن هذا المسار صحيح
                 registerLink.href = `Registration-Forum.html?course=${encodedCourseTitle}`;
             }
 
-            // إشارة النجاح (أخضر)
             statusIndicator.innerHTML = '🟢';
-            window.startSliders(); 
+            // استدعاء دالة بدء السلايدرات من الملف الخارجي
+            if(window.startSliders) window.startSliders(); 
 
         } catch (err) {
             console.error('Error fetching course data:', err);
