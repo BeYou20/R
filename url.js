@@ -1,7 +1,7 @@
 
 // رابط API الأساسي لسكربت Google Apps Script
 const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxWXVDo_mLJubTZnO3VOiPcWTKh6O2lIX_nEmomu6Q93cNWq7NySZfe7Nfoc73V1vNs/exec';
-
+const API_BASE_URLM = 'https://script.google.com/macros/s/AKfycbw3_CNHVz2ov0kZLXmZhnz_3MMEzdMsjI7zUotQzlzYGPNPt4EbgQXtkvuGVrvywrfh/exec';
 // روابط API المستخدمة في الموقع (نفس الرابط لكل وظيفة)
 // رابط سكربت قوقل لنموذج التسجيل
 const SCRIPT_URL = API_BASE_URL;
@@ -14,7 +14,7 @@ const WEB_APP_URL = API_BASE_URL;
 //ورقة شيت العروض 
 const GOOGLE_SCRIPT_URL = API_BASE_URL;
 //ورقة التوظيف
-const SCRIPT_URL_EASY = API_BASE_URL;
+const SCRIPT_URL_EASY = API_BASE_URLM;
 //ورقة عرض صور المدربين 
 
 
@@ -27,6 +27,7 @@ const SCRIPT_URL_EASY = API_BASE_URL;
 // رقم الواتساب
 
 const INSTITUTION_WHATSAPP_NUMBER = '967778185189';
+
 
 
 
