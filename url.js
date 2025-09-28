@@ -1,6 +1,6 @@
 
 // رابط API الأساسي لسكربت Google Apps Script
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwYG0ujsTxSe8ana48Ua8jyZsice_JKMgrVDiExn4QDmGUAjS3tPOX1TibghjorAlzo/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzmK9cKc6iHxEXBYyBsn7oe2tFPy9mXMMbDmQKRfb3e492HALkcGZ1A5FrDhrEAB6_I/exec';
 
 // روابط API المستخدمة في الموقع (نفس الرابط لكل وظيفة)
 // رابط سكربت قوقل لنموذج التسجيل
