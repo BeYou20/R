@@ -125,7 +125,7 @@
 <script>
     AOS.init();
     
-    // دالة Sliders: يجب أن تكون في ملف js/course-slider.js ولكن تم إدراجها هنا لضمان التشغيل الفوري
+    // دالة Sliders: (يجب أن تكون في js/course-slider.js)
     window.startSliders = function() {
         let currentInstructorSlide = 0;
         let currentTestimonialSlide = 0;
@@ -156,7 +156,6 @@
             return nextIndex;
         };
 
-        // تهيئة شرائح المدربين
         if (instructorSlides.length > 0) {
             showSlide(instructorSlides, instructorDots, 0);
             instructorDots.forEach(dot => {
@@ -165,13 +164,11 @@
                     showSlide(instructorSlides, instructorDots, currentInstructorSlide);
                 });
             });
-            // تشغيل التبديل التلقائي
             setInterval(() => {
                 currentInstructorSlide = nextSlide(instructorSlides, instructorDots, currentInstructorSlide);
             }, 5000); 
         }
 
-        // تهيئة شرائح الآراء
         if (testimonialSlides.length > 0) {
             showSlide(testimonialSlides, testimonialDots, 0);
             testimonialDots.forEach(dot => {
@@ -180,7 +177,6 @@
                     showSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
                 });
             });
-            // تشغيل التبديل التلقائي
             setInterval(() => {
                 currentTestimonialSlide = nextSlide(testimonialSlides, testimonialDots, currentTestimonialSlide);
             }, 6000); 
@@ -190,9 +186,10 @@
 
     const statusIndicator = document.getElementById('status-indicator');
     const urlParams = new URLSearchParams(window.location.search);
-    const courseId = urlParams.get('id');
+    // معرّف الدورة الذي يجب أن يكون رقم الصف (1-based index)
+    const courseId = urlParams.get('id'); 
 
-    // الدوال المساعدة (يفضل وضعها في ملف خارجي ولكن تم دمجها هنا للتكامل)
+    // الدوال المساعدة لـ parsing البيانات
     const parseList = (elementId, data, iconClass) => {
         const listElement = document.getElementById(elementId);
         if (!data || data.length === 0) {
@@ -208,7 +205,6 @@
             });
         } catch(e) {
             listElement.parentElement.style.display = 'none';
-            console.error(`Error parsing ${elementId}:`, e);
         }
     };
     
@@ -231,16 +227,21 @@
         const sliderDiv = sliderContainer.querySelector(`#${dataKey}-slider`);
         const dotsContainer = sliderContainer.querySelector(`.${dotClass}`);
         
-        if (!window.course[dataKey] || window.course[dataKey].length === 0) {
+        if (!window.course || !window.course[dataKey] || window.course[dataKey].length === 0) {
             sliderContainer.parentElement.style.display = 'none';
             return;
         }
         
         let items = [];
         try {
-            items = JSON.parse(window.course[dataKey]);
-        } catch (e) {
-            try {
+            // كود Apps Script الذي أرسلته يعيد JSON.stringify لهذه الحقول، لذا نبدأ هنا بـ JSON.parse
+            const rawData = typeof window.course[dataKey] === 'string' ? JSON.parse(window.course[dataKey]) : window.course[dataKey];
+            
+            // تحقق من أن البيانات مصفوفة
+            if (Array.isArray(rawData)) {
+                 items = rawData;
+            } else {
+                // محاولة معالجة كـ نص مفصول بـ | في حال فشل الـ JSON
                 window.course[dataKey].split('|').forEach(itemString => {
                     const parts = itemString.split(' - ').map(p => p.trim());
                     if (dataKey === 'instructors' && parts.length >= 2) {
@@ -249,11 +250,12 @@
                         items.push({ text: parts[0], name: parts[1] });
                     }
                 });
-            } catch(e2) {
-                console.error(`Error processing fallback for ${dataKey}:`, e2);
-                sliderContainer.parentElement.style.display = 'none';
-                return;
             }
+
+        } catch (e) {
+             console.error(`Error processing JSON for ${dataKey}:`, e);
+             sliderContainer.parentElement.style.display = 'none';
+             return;
         }
         
         sliderDiv.innerHTML = '';
@@ -281,31 +283,36 @@
             document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
             document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
             document.querySelector('.marquee').style.display = 'none';
-            document.getElementById('course-about').parentElement.style.display = 'none';
-            document.querySelector('.certificate-section').style.display = 'none';
             return;
         }
 
         try {
-            // 💥 التعديل الحاسم: إرسال الـ action ومعرّف الدورة (id) مباشرة 
-            const apiUrl = `${API_BASE_URL}?action=getCourse&id=${courseId}`; 
+            // 💥 التعديل الحاسم: العودة لجلب جميع الدورات (action=courses)
+            const apiUrl = `${API_BASE_URL}?action=courses`; 
             
             const response = await fetch(apiUrl);
-            const courseData = await response.json();
+            const allCourses = await response.json();
             
-            // تخزين الدورة في متغير عام مؤقت
-            window.course = Array.isArray(courseData) ? courseData[0] : courseData;
+            // التحقق من أن الاستجابة صحيحة وليست خطأ
+            if (allCourses.status === "error" || !Array.isArray(allCourses)) {
+                 throw new Error("فشل في جلب قائمة الدورات من API.");
+            }
+            
+            // 💥 البحث عن الدورة المطلوبة محلياً باستخدام الـ ID 
+            // يتم استخدام == للبحث عن تطابق رقمي/نصي مرن، وهذا يعمل لأن الـ Apps Script يعيد رقم الصف كـ ID
+            const course = allCourses.find(c => c.id == courseId); 
+            window.course = course;
 
             if (!window.course || !window.course.title) {
                 statusIndicator.innerHTML = '🔴';
                 document.getElementById('hero-title').innerText = "⚠️ لم يتم العثور على الدورة المطلوبة";
                 document.getElementById('hero-description').innerText = "يرجى التأكد من الرابط أو العودة إلى صفحة الدورات واختيار دورة صحيحة.";
                 document.querySelector('.marquee').style.display = 'none';
-                document.getElementById('course-about').parentElement.style.display = 'none';
-                document.querySelector('.certificate-section').style.display = 'none';
                 return;
             }
 
+            // -----------------  تحديث محتوى الصفحة  -----------------
+            
             // 1. تحديث النصوص الأساسية
             document.getElementById('hero-title').innerText = window.course.title || "دورة تدريبية متخصصة";
             document.getElementById('hero-description').innerText = window.course.heroDescription || "";
@@ -316,8 +323,7 @@
             // 2. تحديث الفيديو
             const videoEmbed = document.getElementById('video-embed');
             if (window.course.videoUrl && window.course.videoUrl.includes('youtube.com')) {
-                // التأكد من استخدام رابط الـ embed لليوتيوب
-                const embedUrl = window.course.videoUrl.replace('watch?v=', 'embed/');
+                const embedUrl = window.course.videoUrl.replace('watch?v=', 'embed/').split('&')[0];
                 videoEmbed.innerHTML = `<iframe width="100%" height="250" src="${embedUrl}" frameborder="0" allowfullscreen style="border-radius:8px;"></iframe>`;
             } else {
                  videoEmbed.style.display = 'none';
@@ -338,19 +344,13 @@
             if (window.course.faqs) {
                 let faqs = [];
                  try {
+                    // كود Apps Script يعيد هذا الحقل كـ JSON.stringify
                     faqs = JSON.parse(window.course.faqs);
                 } catch (e) {
-                     try {
-                        window.course.faqs.split('|').forEach(faqString => {
-                            const [question, answer] = faqString.split(':').map(p => p.trim());
-                            if (question && answer) {
-                                faqs.push({ question, answer });
-                            }
-                        });
-                    } catch(e2) {
-                        faqContainer.parentElement.style.display = 'none';
-                        return;
-                    }
+                     // في حال فشل الـ JSON، نعرض رسالة خطأ ونخفي القسم
+                     faqContainer.parentElement.style.display = 'none';
+                     console.error("Failed to parse FAQ JSON:", e);
+                     return;
                 }
 
                 faqs.forEach(f => {
@@ -385,14 +385,13 @@
 
             // إشارة النجاح (أخضر)
             statusIndicator.innerHTML = '🟢';
-            // استدعاء دالة بدء السلايدرات
             window.startSliders(); 
 
         } catch (err) {
             console.error('Error fetching course data:', err);
             statusIndicator.innerHTML = '🔴';
             document.getElementById('hero-title').innerText = "⚠️ حدث خطأ أثناء تحميل البيانات";
-            document.getElementById('hero-description').innerHTML = "تأكد من اتصالك بالإنترنت وحاول مرة أخرى. <br><br> <a href='#' class='btn btn-register' onclick='loadCourseData(); return false;'>إعادة المحاولة</a>";
+            document.getElementById('hero-description').innerHTML = "تأكد من اتصالك بالإنترنت ومن أن Apps Script يعمل بشكل صحيح. <br><br> <a href='#' class='btn btn-register' onclick='loadCourseData(); return false;'>إعادة المحاولة</a>";
         }
     }
 
