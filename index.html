@@ -19,7 +19,6 @@
     gtag('config', 'AW-17515401485');
     gtag('event', 'purchase', {});
   </script>
-  <script src="url.js"></script>
 </head>
 <body>
   
@@ -126,13 +125,9 @@
   <div id="testimonials-section"></div>
 
   <div class="section" data-aos="fade-up">
-    <h2>معرض الصور</h2>
-    <div class="swiper mySwiper-gallery">
+    <h2>صور من المؤسسة</h2> <div class="swiper mySwiper-gallery">
       <div class="swiper-wrapper" id="gallery-container">
         </div>
-      <div class="swiper-button-next"></div>
-      <div class="swiper-button-prev"></div>
-      <div class="swiper-pagination"></div>
     </div>
   </div>
   
@@ -150,13 +145,17 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
   
+  <script src="url.js"></script> 
+  
   <script>
+    
     AOS.init({
         duration: 1200,
         easing: "ease-in-out",
         once: true
     });
 
+    // تهيئة سلايدر الدورات (Courses Swiper)
     var swiper = new Swiper(".mySwiper", {
         slidesPerView: 'auto',
         spaceBetween: 10,
@@ -175,42 +174,52 @@
         },
     });
 
+    // 🌟 دالة آراء المتدربين (Testimonials) 🌟
     document.addEventListener('DOMContentLoaded', () => {
-        const testimonialsHTML = `  
-            <div class="section" data-aos="fade-up">  
-                <h2>آراء طلابنا</h2>  
-                <div class="slider-container">  
-                    <div id="testimonials-container"></div>  
-                    <div class="slider-dots"></div>  
-                </div>  
-            </div>  
-        `;  
-        document.getElementById('testimonials-section').innerHTML = testimonialsHTML;  
+        // إنشاء الهيكل ديناميكياً لآراء المتدربين
+        const testimonialsSection = document.getElementById('testimonials-section');
+        if (testimonialsSection) {
+             testimonialsSection.innerHTML = `
+                <div class="section" data-aos="fade-up">
+                    <h2>آراء طلابنا</h2>
+                    <div class="slider-container">
+                        <div id="testimonials-container"></div>
+                        <div class="slider-dots"></div>
+                    </div>
+                </div>
+            `;
+        }
 
         async function fetchTestimonials() {  
             try {  
-                const response = await fetch(TESTIMONIALS_URL);  
+                // يستخدم TESTIMONIALS_URL من ملف url.js
+                const response = await fetch(`${TESTIMONIALS_URL}?action=courses`); 
                 const data = await response.json();  
+                
                 const container = document.getElementById('testimonials-container');  
-                const dotsContainer = document.querySelector('.slider-dots');  
+                const dotsContainer = document.querySelector('#testimonials-section .slider-dots');
+                
+                if (!container || !dotsContainer) return; 
+
                 container.innerHTML = '';  
                 dotsContainer.innerHTML = '';  
-
+                
                 let slideIndex = 0;  
                 const allTestimonials = [];  
 
-                data.forEach(row => {  
-                    if (row.testimonials) {  
-                        const entries = row.testimonials.split('|');  
-                        entries.forEach(entry => {  
-                            const parts = entry.split(' - ');  
-                            if (parts.length >= 2) {  
+                data.forEach(course => {  
+                    if (course.testimonials) {  
+                        try {
+                            const testimonialsArray = JSON.parse(course.testimonials);
+                            testimonialsArray.forEach(t => {  
                                 allTestimonials.push({  
-                                    text: parts[0].trim(),  
-                                    name: parts[1].trim()  
+                                    text: t.text || '',  
+                                    name: t.name || ''   
                                 });  
-                            }  
-                        });  
+                            });
+                        } catch (e) {
+                            console.error("Failed to parse testimonials JSON for course:", course.id, e);
+                        }
                     }
                 });  
 
@@ -221,7 +230,7 @@
                     div.textContent = `${testimonial.text} – ${testimonial.name}`;  
                     container.appendChild(div);  
 
-                    if (index < 10) {  
+                    if (index < 10) { 
                         const dot = document.createElement('span');  
                         dot.classList.add('dot');  
                         if (index === 0) dot.classList.add('active');  
@@ -230,8 +239,8 @@
                     }  
                 });  
 
-                const testimonials = document.querySelectorAll('.testimonial');  
-                const dots = document.querySelectorAll('.dot');  
+                const testimonials = document.querySelectorAll('#testimonials-section .testimonial');  
+                const dots = document.querySelectorAll('#testimonials-section .dot');  
 
                 function showSlide(index) {  
                     testimonials.forEach(t => t.classList.remove('active'));  
@@ -245,75 +254,97 @@
                     showSlide((slideIndex + 1) % testimonials.length);  
                 }  
 
-                setInterval(nextSlide, 4000);  
+                if(allTestimonials.length > 1) {
+                    setInterval(nextSlide, 4000); 
+                }
 
             } catch (error) {  
                 console.error('Error fetching testimonials:', error);  
-                document.getElementById('testimonials-container').innerHTML = '<p style="text-align:center;">تعذر تحميل الآراء. حاول مرة أخرى لاحقًا.</p>';  
+                document.getElementById('testimonials-section').innerHTML = '<p style="text-align:center;">تعذر تحميل الآراء. حاول مرة أخرى لاحقًا.</p>';  
             }  
         }  
+        
         fetchTestimonials();
     });
 
-// Functionality for the new image gallery
+    // 🌟 دالة معرض الصور (Gallery) 🌟
+    async function fetchGalleryImages() {
+        try {
+            // يستخدم GALLERY_URL من ملف url.js
+            const response = await fetch(`${GALLERY_URL}?action=gallery`); 
+            const result = await response.json();
+            const container = document.getElementById('gallery-container');
+            
+            container.innerHTML = '';
+            
+            const imagesData = result.images || [];
 
-var swiperGallery = new Swiper(".mySwiper-gallery", {
-    slidesPerView: 'auto',
-    spaceBetween: 20,
-    loop: true,
-    autoplay: {
-        delay: 5000,
-        disableOnInteraction: false,
-    },
-    pagination: {
-        el: ".swiper-pagination",
-        clickable: true,
-    },
-    navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
-    },
-});
+            // 1. إيجاد العنصر الذي سيحمل العنوان
+            const gallerySection = container.closest('.section');
+            let galleryTitle = gallerySection.querySelector('h2');
+            
+            imagesData.forEach(row => {
+                const url = row.url; 
+                const name = row.name; 
 
-async function fetchGalleryImages() {
-    try {
-        // استخدام المتغير GALLERY_URL من ملف url.js
-        const response = await fetch(GALLERY_URL); 
-        const data = await response.json();
-        const container = document.getElementById('gallery-container');
-        container.innerHTML = '';
+                if (url) {
+                    const slide = document.createElement('div');
+                    slide.classList.add('swiper-slide');
+                    slide.classList.add('gallery-slide');
+                    
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = name || 'صورة من المعرض';
+                    
+                    const caption = document.createElement('div');
+                    caption.classList.add('gallery-caption');
+                    caption.textContent = name || '';
 
-        data.forEach(row => {
-            const url = row.URL;
-            const name = row.Name;
+                    slide.appendChild(img);
+                    slide.appendChild(caption);
+                    container.appendChild(slide);
+                }
+            });
+            
+            // 2. تهيئة Swiper
+            var swiperGallery = new Swiper(".mySwiper-gallery", {
+                slidesPerView: 1, 
+                spaceBetween: 0, 
+                centeredSlides: true,
+                loop: true,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                pagination: false, 
+                navigation: false,
+                // تحديث العنوان بناءً على الشريحة النشطة
+                on: {
+                    slideChange: function () {
+                        const activeSlide = this.slides[this.activeIndex];
+                        const caption = activeSlide.querySelector('.gallery-caption');
+                        if (caption) {
+                            galleryTitle.textContent = caption.textContent;
+                        }
+                    },
+                    init: function () {
+                        // تعيين العنوان عند التهيئة الأولى
+                        const activeSlide = this.slides[this.activeIndex];
+                        const caption = activeSlide.querySelector('.gallery-caption');
+                        if (caption) {
+                            galleryTitle.textContent = caption.textContent;
+                        }
+                    },
+                },
+            });
 
-            if (url) {
-                const slide = document.createElement('div');
-                slide.classList.add('swiper-slide');
-                slide.classList.add('gallery-slide');
-                
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = name || 'صورة من المعرض';
-                
-                const caption = document.createElement('div');
-                caption.classList.add('gallery-caption');
-                caption.textContent = name || '';
-
-                slide.appendChild(img);
-                slide.appendChild(caption);
-                container.appendChild(slide);
-            }
-        });
-        swiperGallery.update();
-
-    } catch (error) {
-        console.error('Error fetching gallery images:', error);
-        document.getElementById('gallery-container').innerHTML = '<p style="text-align:center;">تعذر تحميل الصور. حاول مرة أخرى لاحقًا.</p>';
+        } catch (error) {
+            console.error('Error fetching gallery images:', error);
+            document.getElementById('gallery-container').innerHTML = '<p style="text-align:center;">تعذر تحميل الصور. حاول مرة أخرى لاحقًا.</p>';
+        }
     }
-}
 
-fetchGalleryImages();
+    fetchGalleryImages();
 
   </script>
 </body>
