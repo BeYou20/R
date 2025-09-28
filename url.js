@@ -1,6 +1,6 @@
 
 // رابط API الأساسي لسكربت Google Apps Script
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzmK9cKc6iHxEXBYyBsn7oe2tFPy9mXMMbDmQKRfb3e492HALkcGZ1A5FrDhrEAB6_I/exec';
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxWFhFArhfzx6xh3nLbiql5BOuNbX7GE_5q_Ej8Vw3VOzkd3DBJJHXjudTPjdooQl3v/exec';
 
 // روابط API المستخدمة في الموقع (نفس الرابط لكل وظيفة)
 // رابط سكربت قوقل لنموذج التسجيل
@@ -27,4 +27,5 @@ const SCRIPT_URL_EASY = API_BASE_URL;
 // رقم الواتساب
 
 const INSTITUTION_WHATSAPP_NUMBER = '967778185189';
+
 
