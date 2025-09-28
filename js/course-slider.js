@@ -1,60 +1,163 @@
-// الدالة العامة لتشغيل أي سلايدر
-function initializeSlider(containerId, slideClassName, dotClassName) {
+// ====================================================================
+//                 *** قوالب HTML المساعدة ***
+// ====================================================================
+
+// قالب المدرب
+const instructorTemplate = (inst) => `
+    <div class="instructor-card">
+        <img src="${inst.photo || 'https://via.placeholder.com/150'}" alt="${inst.name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/150/0d3b14/ffffff?text=لا+يوجد+صورة';">
+        <h4>${inst.name}</h4>
+        <p>${inst.role}</p>
+    </div>
+`;
+// قالب آراء المتدربين
+const testimonialTemplate = (t) => `
+    <p class="testimonial-text">"${t.text}"</p>
+    <p><strong>${t.name}</strong></p>
+`;
+
+// ====================================================================
+//                 *** دوال معالجة البيانات المساعدة ***
+// ====================================================================
+
+/**
+ * @function parseList
+ * @description تقوم بتحويل حقل النص المفصول بـ | (Objectives/Axes/Achievements) إلى قائمة HTML.
+ * يتم ربطها بـ window لكي تكون متاحة للاستدعاء من courses.html.
+ */
+window.parseList = function (elementId, data, iconClass) {
+    const listElement = document.getElementById(elementId);
+    if (!data || data.length === 0) {
+        listElement.parentElement.style.display = 'none';
+        return;
+    }
+    listElement.innerHTML = '';
+    try {
+        data.split('|').forEach(text => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="${iconClass}"></i> ${text.trim()}`;
+            listElement.appendChild(li);
+        });
+    } catch(e) {
+        listElement.parentElement.style.display = 'none';
+    }
+};
+
+/**
+ * @function setupSlider
+ * @description يقوم بتهيئة عناصر السلايدر (الشرائح والنقاط) بناءً على بيانات الدورة.
+ * يتم ربطها بـ window لكي تكون متاحة للاستدعاء من courses.html.
+ */
+window.setupSlider = function (sliderIdContainer, dotClass, dataKey) {
+    const sliderContainer = document.getElementById(sliderIdContainer);
+    // إذا لم يتم العثور على الحاوية، أو لم يتم تحميل كائن الدورة بعد، توقف.
+    if (!sliderContainer || !window.course) return;
+
+    const sliderDiv = sliderContainer.querySelector(`#${dataKey}-slider`);
+    const dotsContainer = sliderContainer.querySelector(`.${dotClass}`);
+    
+    if (!window.course[dataKey] || window.course[dataKey].length === 0) {
+        sliderContainer.parentElement.style.display = 'none';
+        return;
+    }
+    
+    let items = [];
+    let template;
+    
+    if (dataKey === 'instructors') {
+        template = instructorTemplate;
+    } else if (dataKey === 'testimonials') {
+        template = testimonialTemplate;
+    } else {
+        return; // حقل غير مدعوم
+    }
+
+    try {
+        const rawData = typeof window.course[dataKey] === 'string' ? JSON.parse(window.course[dataKey]) : window.course[dataKey];
+        
+        if (Array.isArray(rawData)) {
+             items = rawData;
+        } else {
+             sliderContainer.parentElement.style.display = 'none';
+             return;
+        }
+
+    } catch (e) {
+         sliderContainer.parentElement.style.display = 'none';
+         return;
+    }
+    
+    sliderDiv.innerHTML = '';
+    dotsContainer.innerHTML = '';
+
+    items.forEach((item, i) => {
+        const slide = document.createElement('div');
+        const slideClassName = dataKey.slice(0, -1) + '-slide'; 
+        slide.className = slideClassName; 
+        slide.innerHTML = template(item);
+        sliderDiv.appendChild(slide);
+
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.dataset.slideIndex = i;
+        dotsContainer.appendChild(dot);
+    });
+};
+
+
+// ====================================================================
+//                 *** دوال التحكم بالسلايدر ***
+// ====================================================================
+
+/**
+ * @function initializeSlider
+ * @description الدالة الأساسية لتشغيل أي سلايدر (مدربين أو آراء)
+ */
+function initializeSlider(containerId, slideClassName) {
     const slidesContainer = document.getElementById(containerId);
-    // إذا لم يتم العثور على العنصر، توقف عن التنفيذ
     if (!slidesContainer) return;
 
-    // الحصول على شرائح السلايدر والدوائر
+    // البحث عن الشرائح والنقاط
     const slides = slidesContainer.getElementsByClassName(slideClassName);
-    const dots = slidesContainer.parentElement.querySelector('.slider-dots').getElementsByClassName('dot');
+    const dots = slidesContainer.parentElement.querySelector('.slider-dots') ? slidesContainer.parentElement.querySelector('.slider-dots').getElementsByClassName('dot') : [];
     let slideIndex = 0;
     let autoSlideInterval;
 
-    // إذا لم تكن هناك شرائح، قم بإخفاء القسم بأكمله
-    if (slides.length === 0) {
-        // slidesContainer.parentElement.style.display = 'none'; // تم إزالة هذا لتجنب إخفاء الأقسام بالكامل في حال الخطأ
-        return;
-    }
+    if (slides.length === 0) return;
 
-    // دالة عرض الشريحة الحالية وإخفاء الباقي
     function showSlides(n) {
-        // إعادة تعيين المؤشر إذا وصل إلى النهاية
         if (n >= slides.length) { slideIndex = 0; }
         if (n < 0) { slideIndex = slides.length - 1; }
 
-        // إخفاء جميع الشرائح
         for (let i = 0; i < slides.length; i++) {
             slides[i].style.display = "none";
         }
-        // إزالة حالة النشاط من جميع الدوائر
         for (let i = 0; i < dots.length; i++) {
             dots[i].className = dots[i].className.replace(" active", "");
         }
         
-        // عرض الشريحة الحالية وتفعيل الدائرة المقابلة لها
-        slides[slideIndex].style.display = "flex"; // تم تعديل هذا إلى flex ليتناسب مع CSS
-        dots[slideIndex].className += " active";
+        // عرض الشريحة
+        slides[slideIndex].style.display = "flex"; 
+        if (dots[slideIndex]) {
+            dots[slideIndex].className += " active";
+        }
     }
 
-    // دالة للتنقل إلى الشريحة التالية/السابقة
     function plusSlides(n) {
         showSlides(slideIndex += n);
     }
     
-    // دالة الانتقال إلى شريحة معينة عند النقر على الدائرة
     function currentSlide(n) {
         showSlides(slideIndex = n);
     }
 
-    // دالة بدء التمرير التلقائي
     function startAutoSlide() {
-        if (autoSlideInterval) clearInterval(autoSlideInterval); // إيقاف التمرير الحالي أولاً
+        if (autoSlideInterval) clearInterval(autoSlideInterval); 
         autoSlideInterval = setInterval(() => {
             plusSlides(1);
-        }, 5000); // تغيير الشريحة كل 5 ثوانٍ
+        }, 5000); 
     }
     
-    // إضافة مستمعي الأحداث لكل دائرة
     Array.from(dots).forEach(dot => {
         dot.addEventListener('click', (event) => {
             const index = parseInt(event.target.dataset.slideIndex);
@@ -62,15 +165,17 @@ function initializeSlider(containerId, slideClassName, dotClassName) {
         });
     });
 
-    // تشغيل السلايدر عند تحميل الصفحة
     showSlides(slideIndex);
     startAutoSlide();
 }
 
-// دالة عامة لتشغيل جميع السلايدرات
-// تم تغييرها لتكون دالة منفصلة يتم استدعاؤها من courses.html
+/**
+ * @function startSliders
+ * @description دالة عامة لتشغيل جميع السلايدرات.
+ * يتم استدعاؤها من courses.html بعد جلب البيانات.
+ */
 window.startSliders = function() {
-    // يجب تمرير IDs الحاويات وليس IDs السلايدرات الداخلية
-    initializeSlider('instructors-slider', 'instructor-slide', 'dot');
-    initializeSlider('testimonials-slider', 'testimonial-slide', 'dot');
+    // تمرير ID السلايدر الداخلي واسم كلاس الشريحة
+    initializeSlider('instructors-slider', 'instructor-slide');
+    initializeSlider('testimonials-slider', 'testimonial-slide');
 };
