@@ -6,6 +6,7 @@
   --secondary-color: #e5a72d; /* اللون الثانوي: ذهبي/أصفر */
   --accent-color: #f7f3e9; /* لون الخلفية: بيج فاتح */
   --text-color: #f4f4f4; /* لون النصوص: أبيض */
+  --white-color: #ffffff; /* لون أبيض إضافي */
 }
 
 /* تنسيق الجسم الأساسي للصفحة */
@@ -15,10 +16,11 @@ body {
   background-color: var(--accent-color);
   color: var(--primary-color);
   line-height: 1.7;
-  overflow-x: hidden; /* إخفاء أي محتوى يخرج عن عرض الصفحة */
+  /* 🌟 مهم: إخفاء أي محتوى يخرج عن عرض الصفحة لمنع ظهور شريط التمرير الأفقي 🌟 */
+  overflow-x: hidden; 
 }
 
-/* -------------------- تنسيق الأقسام -------------------- */
+/* -------------------- تنسيق الهيدر والتنقل -------------------- */
 
 /* تنسيق الهيدر (العنوان وقائمة التنقل) */
 header {
@@ -39,9 +41,11 @@ nav a {
 }
 nav a:hover { color: var(--secondary-color); }
 
+/* -------------------- تنسيق قسم Hero -------------------- */
+
 /* تنسيق قسم "البطل" (Hero Section) في أعلى الصفحة) */
 .hero {
-  background: url("https://www.raed.net/img?id=1422661") no-repeat center/cover;
+  background: url('images/photo.jpg') no-repeat center/cover;
   color: #fff;
   text-align: center;
   padding: 120px 20px;
@@ -84,6 +88,8 @@ nav a:hover { color: var(--secondary-color); }
 }
 .hero-text a:hover { transform: scale(1.05); }
 
+/* -------------------- تنسيق شريط الأخبار المتحرك -------------------- */
+
 /* تنسيق شريط الأخبار المتحرك */
 .marquee {
   width: 100%;
@@ -101,6 +107,7 @@ nav a:hover { color: var(--secondary-color); }
   animation: marquee 70s linear infinite;
 }
 
+/* تنسيق الحاوية الخارجية لشريط الأخبار */
 .ticker-wrap {
   width: 100%;
   overflow: hidden;
@@ -116,6 +123,7 @@ nav a:hover { color: var(--secondary-color); }
   animation: marquee 30s linear infinite;
 }
 
+/* تحديد حركة التمرير */
 @keyframes marquee {
   0% {
     transform: translateX(0%); /* يبدأ عند حافة اليسار */
@@ -124,6 +132,8 @@ nav a:hover { color: var(--secondary-color); }
     transform: translateX(100%); /* يتحرك للخارج جهة اليمين */
   }
 }
+
+/* -------------------- تنسيق الأقسام والمميزات -------------------- */
 
 /* تنسيق الأقسام الرئيسية (من نحن، مميزاتنا، الدورات، إلخ) */
 .section {
@@ -143,7 +153,7 @@ nav a:hover { color: var(--secondary-color); }
   overflow: hidden;
 }
 
-/* تنسيق عناوين الأقسام (مثال: من نحن، مميزاتنا) */
+/* تنسيق عناوين الأقسام */
 .section h2 {
   color: var(--primary-color);
   margin-bottom: 10px; 
@@ -186,6 +196,7 @@ nav a:hover { color: var(--secondary-color); }
 }
 
 /* -------------------- تنسيق Swiper (سلايدر الدورات) -------------------- */
+
 .swiper {
   width: 100%;
   padding-bottom: 5px;
@@ -244,6 +255,7 @@ nav a:hover { color: var(--secondary-color); }
 }
 
 /* -------------------- تنسيق سلايدر آراء الطلاب -------------------- */
+
 .slider-container {
   position: relative;
   width: 100%;
@@ -308,6 +320,74 @@ nav a:hover { color: var(--secondary-color); }
 .dot.active {
   background-color: var(--primary-color);
 }
+
+/* -------------------- تنسيقات معرض الصور (Swiper Gallery) -------------------- */
+
+/* 1. الحاوية الأب لـ Swiper Gallery - يجب أن يكون Overflow مخفياً */
+.mySwiper-gallery {
+    width: 100%; 
+    height: 450;
+    /* 💥 الحل الحاسم: إخفاء أي محتوى يخرج عن حدود الحاوية 💥 */
+    overflow: hidden !important; 
+    padding: 0; 
+    margin-top: 20px;
+}
+
+/* 2. حاوية الشرائح (لضمان أنها ليست السبب في العرض الزائد) */
+.mySwiper-gallery .swiper-wrapper {
+    /* ضمان أن الـ wrapper لا يتجاوز عرض الحاوية الأب */
+    width: 100% !important; 
+    /* ❌ تم حذف: transform: none !important; - لإعادة التحريك التلقائي ❌ */
+}
+
+/* 3. الشريحة الرئيسية (Card) */
+.gallery-slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 15px;
+    /* 💥 الحل الحاسم: فرض العرض الكامل وإلغاء أي قيم مضمنة 💥 */
+    width: 100% !important; 
+    /* إزالة الـ margin/padding الافتراضي من Swiper */
+    margin: 0 !important; 
+    padding: 0 !important;
+    height: 400px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--white-color);
+    overflow: hidden; /* قص المحتوى الزائد داخل الشريحة فقط */
+}
+
+/* 4. الصورة داخل الشريحة */
+.gallery-slide img {
+    width: 300px; 
+    height: 300px;
+    object-fit: contain; 
+    transition: transform 0.3s;
+    border-radius: 50%; 
+    border: 5px solid var(--primary-color); 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px; 
+}
+
+.gallery-slide:hover img {
+    transform: scale(1.05); 
+}
+
+/* 5. النص (العنوان) */
+.gallery-caption {
+    width: 100%;
+    background-color: transparent; 
+    color: var(--secondary-color); 
+    padding: 10px;
+    font-size: 1.5em; 
+    font-weight: bold;
+    text-shadow: none; 
+    text-align: center;
+}
+
+/* -------------------- تنسيق قسم التواصل والفوتر -------------------- */
     
 /* تنسيق قسم التواصل */
 .contact { 
@@ -347,6 +427,7 @@ footer {
 }
     
 /* -------------------- تنسيقات الشاشات الصغيرة (الجوال) -------------------- */
+
 @media (max-width: 768px) {
   header { flex-direction: column; text-align: center; padding: 10px 15px; }
   header h1 { font-size: 20px; margin-bottom: 10px; }
@@ -382,50 +463,4 @@ footer {
   nav a { font-size: 12px; margin: 4px; }
   .section { padding: 15px 10px; }
   .testimonial { padding: 20px; }
-}
-
-
-/* ... rest of the existing CSS ... */
-
-.swiper.mySwiper-gallery {
-    width: 90%;
-    margin-top: 40px;
-}
-
-.gallery-slide {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    border-radius: 15px;
-    overflow: hidden;
-    height: 300px; /* Adjust height as needed */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: var(--white-color);
-}
-
-.gallery-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
-}
-
-.gallery-slide:hover img {
-    transform: scale(1.05);
-}
-
-.gallery-caption {
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: var(--white-color);
-    padding: 10px;
-    font-size: 1em;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    text-align: center;
 }
