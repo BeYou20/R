@@ -1,7 +1,5 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSCBHJBlfAwm7ox8oHmiW5qQ64QVEbyQuElkuYoz8g4SfUdQhjM2mA0bcu13-aDS2ECQ/exec";
-
 document.addEventListener('DOMContentLoaded', () => {
-    // ===== تعريف العناصر =====
     const form = document.getElementById('form');
     const submitBtn = document.getElementById('submit-btn');
     const formMessage = document.getElementById('form-message');
@@ -10,10 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const formMainTitle = document.getElementById('form-main-title');
     const totalInputs = inputs.length;
 
-    // ===== رسالة خطأ العمر =====
     const ageErrorMessages = [
     
-          "يا سلام! ✨ أنت نجم من زمن قديم — النظام يقف عند 99 عام، لكن احترامنا لك بلا حدود 🤗.",
+    "يا سلام! ✨ أنت نجم من زمن قديم — النظام يقف عند 99 عام، لكن احترامنا لك بلا حدود 🤗.",
     "ما شاء الله عليك! 🌟 خبرة وحكايات لا تُقَدَّر... النظام يقبل حتى 99 عام ، والباقي لنا فخر به 👏.",
     "ضحكتنا من فرط الإعجاب 😄 — والله لو عندنا خانة للأبطال، تملأها أنت، والنظام عنده حد 99 عام بس.",
     "يا مرحباً بالأسطورة! 🏅 النظام يوقف عند 99 عام، لكن تحياتنا تمتد أكثر من صفحة سجل 🤗.",
@@ -45,24 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
     "مذهل! 😄 كل عام منك مليئة بالحكمة — النظام عنده سقف، لكن تقديرنا لك بلا حدود.",
     "يا سلام على العمر! 🌿 النظام يقف عند 99 عام، لكن تجاربك وقصصك لا تُحصى."
     
- ];
+    
+];
 
-    // إخفاء جميع رسائل الخطأ عند البداية
     document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
 
-    // ===== جلب اسم الدورة من الرابط =====
     const urlParams = new URLSearchParams(window.location.search);
-    let courseName = urlParams.get("course");
+    const courseName = urlParams.get("course");
     if (courseName) {
-        try {
-            courseName = decodeURIComponent(courseName);
-            courseName = decodeURIComponent(courseName); // فك الترميز مرتين إذا لزم
-        } catch(e) {}
-        document.getElementById("course-name-input").value = courseName;
-        formMainTitle.innerHTML = `📘 أنت تسجل الآن في: <span style="color:var(--accent-color);">${courseName}</span>`;
+        const decodedCourseName = decodeURIComponent(courseName);
+        document.getElementById("course-name-input").value = decodedCourseName;
+        formMainTitle.innerHTML = `📘 أنت تسجل الآن في: <span style="color:var(--accent-color);">${decodedCourseName}</span>`;
     }
 
-    // ===== تعبئة قائمة الدول =====
     const countrySelect = document.getElementById('country');
     arabCountries.forEach(country => {
         const option = document.createElement('option');
@@ -71,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         countrySelect.appendChild(option);
     });
 
-    // ===== تحديث شريط التقدم =====
     const updateProgress = () => {
         let filledInputs = 0;
         inputs.forEach(input => {
@@ -83,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = `${progress}%`;
     };
 
-    // ===== التحقق أثناء الكتابة =====
     inputs.forEach(input => {
         const icon = input.closest('.input-with-icon').querySelector('.icon');
         const errorMessage = input.closest('.input-group').querySelector('.error-message');
@@ -131,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ===== عند الإرسال =====
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -169,20 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
         formMessage.style.display = 'none';
 
         try {
-            // إرسال البيانات إلى Google Sheets
+            // الخطوة 1: إرسال البيانات إلى قوقل شيت أولاً
             const formData = new FormData(form);
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: formData
             });
 
+            // إذا نجح الإرسال، ننتقل للخطوة الثانية
             if (response.ok) {
-                // جمع البيانات لرسالة واتساب
+                // الخطوة 2: جمع البيانات لرسالة الواتساب
                 const data = {};
                 for (let [key, value] of formData.entries()) {
                     data[key] = value;
                 }
 
+                // الكود المعدل هنا:
                 const messageBody = `
 🎓 *تسجيل جديد في دورة ${data.CourseName}!*
 
@@ -200,11 +191,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 📩 سيتم التواصل معك قريبًا لتأكيد بياناتك والانطلاق في الدورة.
 `;
+                // نهاية الكود المعدل
 
-                // توجيه المستخدم إلى واتساب
+                // الخطوة 3: توجيه المستخدم إلى واتساب
                 window.location.href = `https://wa.me/967778185189?text=${encodeURIComponent(messageBody)}`;
 
-                // إعادة ضبط الفورم
                 form.reset();
                 updateProgress();
                 inputs.forEach(input => {
@@ -212,7 +203,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const icon = input.closest('.input-with-icon').querySelector('.icon');
                     if(icon) icon.style.color = "var(--primary-color)";
                 });
+
             } else {
+                 // إذا فشل الإرسال، نعرض رسالة خطأ
                 throw new Error('Form submission failed.');
             }
 
