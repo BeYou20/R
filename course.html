@@ -40,9 +40,6 @@
 
 <div class="marquee"><span id="marquee-text"></span></div>
 
-<div class="container" id="about-us-section" data-aos="fade-up">
-    <h2>من نحن</h2>
-</div>
 
 <div class="container" data-aos="fade-up">
     <div class="video-section" style="margin-top:15px;">
@@ -124,9 +121,6 @@
 
 <script>
     AOS.init();
-    
-    // تم حذف جميع دوال الـ Sliders والـ Parsing والـ Setup من هنا
-    // تم وضعها في js/course-slider.js
 
     const statusIndicator = document.getElementById('status-indicator');
     const urlParams = new URLSearchParams(window.location.search);
@@ -186,33 +180,22 @@
             });
         });
     }
-// دالة جلب بيانات الدورة
-async function loadCourseData() {
-    statusIndicator.innerHTML = '🟡';
-    
-    if (!courseId) {
-        statusIndicator.innerHTML = '🔴';
-        document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
-        document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
-        document.querySelector('.marquee').style.display = 'none';
-        return;
-    }
 
-    // هنا يكون عندك كود يجلب بيانات الدورة من المصفوفة ويعرضها
-    document.getElementById('hero-title').innerText = window.course.title;
-    document.getElementById('hero-description').innerText = window.course.heroDescription;
-    document.getElementById('hero-image').src = window.course.image;
-
-    // ✅ هذا السطر المهم لتحديث رابط التسجيل مع اسم الدورة
-    document.getElementById('register-link').href = `form.html?course=${encodeURIComponent(window.course.title)}`;
-
-    statusIndicator.innerHTML = '🟢';
-}
+    // ✅ دالة واحدة فقط لتحميل بيانات الدورة
+    async function loadCourseData() {
+        statusIndicator.innerHTML = '🟡';
+        
+        if (!courseId) {
+            statusIndicator.innerHTML = '🔴';
+            document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
+            document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
+            document.querySelector('.marquee').style.display = 'none';
+            return;
+        }
 
         try {
-            // جلب جميع الدورات والبحث عن الدورة المطلوبة محلياً
+            // جلب جميع الدورات من الـ API
             const apiUrl = `${API_BASE_URL}?action=courses`; 
-            
             const response = await fetch(apiUrl);
             const allCourses = await response.json();
             
@@ -232,7 +215,6 @@ async function loadCourseData() {
             }
 
             // -----------------  تحديث محتوى الصفحة  -----------------
-            
             document.getElementById('hero-title').innerText = window.course.title || "دورة تدريبية متخصصة";
             document.getElementById('hero-description').innerText = window.course.heroDescription || "";
             document.getElementById('marquee-text').innerText = window.course.marqueeText || "سجل الآن وابدأ رحلتك!";
@@ -247,15 +229,17 @@ async function loadCourseData() {
                  videoEmbed.style.display = 'none';
             }
             
-            // استدعاء الدوال المساعدة من الملف الخارجي
+            // استدعاء الدوال المساعدة
             window.parseList('objectives-list', window.course.objectives, 'fa fa-check-circle');
             window.parseList('axes-list', window.course.axes, 'fa fa-arrow-alt-circle-left');
             window.parseList('achievements-list', window.course.achievementsText, 'fa fa-star');
             
-            // معالجة السلايدرات والـ FAQ
             window.setupSlider('instructors-slider-container', 'instructor-dots', 'instructors');
             window.setupSlider('testimonials-slider-container', 'testimonial-dots', 'testimonials');
             setupFaq(window.course.faqs);
+
+            // ✅ تحديث رابط التسجيل مع اسم الدورة
+            document.getElementById('register-link').href = `form.html?course=${encodeURIComponent(window.course.title)}`;
 
             // تشغيل السلايدرات
             window.startSliders(); 
@@ -274,5 +258,3 @@ async function loadCourseData() {
 
 </body>
 </html>
-
-
