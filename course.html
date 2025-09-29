@@ -186,18 +186,28 @@
             });
         });
     }
+// دالة جلب بيانات الدورة
+async function loadCourseData() {
+    statusIndicator.innerHTML = '🟡';
+    
+    if (!courseId) {
+        statusIndicator.innerHTML = '🔴';
+        document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
+        document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
+        document.querySelector('.marquee').style.display = 'none';
+        return;
+    }
 
-    // دالة جلب بيانات الدورة
-    async function loadCourseData() {
-        statusIndicator.innerHTML = '🟡';
-        
-        if (!courseId) {
-            statusIndicator.innerHTML = '🔴';
-            document.getElementById('hero-title').innerText = "⚠️ يرجى تحديد الدورة";
-            document.getElementById('hero-description').innerText = "تم الوصول إلى الصفحة بدون معرف الدورة.";
-            document.querySelector('.marquee').style.display = 'none';
-            return;
-        }
+    // هنا يكون عندك كود يجلب بيانات الدورة من المصفوفة ويعرضها
+    document.getElementById('hero-title').innerText = window.course.title;
+    document.getElementById('hero-description').innerText = window.course.heroDescription;
+    document.getElementById('hero-image').src = window.course.image;
+
+    // ✅ هذا السطر المهم لتحديث رابط التسجيل مع اسم الدورة
+    document.getElementById('register-link').href = `form.html?course=${encodeURIComponent(window.course.title)}`;
+
+    statusIndicator.innerHTML = '🟢';
+}
 
         try {
             // جلب جميع الدورات والبحث عن الدورة المطلوبة محلياً
@@ -264,4 +274,5 @@
 
 </body>
 </html>
+
 
