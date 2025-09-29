@@ -1,4 +1,4 @@
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzSCBHJBlfAwm7ox8oHmiW5qQ64QVEbyQuElkuYoz8g4SfUdQhjM2mA0bcu13-aDS2ECQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGteqsZANJU97PTT7QiZsZ5bLkkEDNEY2zUAaghJuLR7PairiAgRYMK9XFBhEWmHoFoQ/exec";
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form');
     const submitBtn = document.getElementById('submit-btn');
@@ -219,3 +219,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
